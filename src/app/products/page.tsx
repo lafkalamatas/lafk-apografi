@@ -147,6 +147,7 @@ export default function ProductsPage() {
       {adjustingProduct && (
         <StockAdjustModal
           product={adjustingProduct}
+          ingredientProducts={products}
           onClose={() => setAdjustingProduct(null)}
           onSaved={() => fetchData(showInactive)}
         />

@@ -4,10 +4,11 @@ import { useCallback, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthGuard } from '@/lib/useAuthGuard';
-import { fetchProduct, fetchMovements, isLowStock } from '@/lib/inventory';
+import { fetchProduct, fetchProducts, fetchMovements, fetchRecipeItems, isLowStock } from '@/lib/inventory';
 import { AppHeader } from '@/components/AppHeader';
 import { StockAdjustModal } from '@/components/StockAdjustModal';
-import type { InventoryProduct, InventoryMovement } from '@/lib/supabase';
+import { RecipeEditor } from '@/components/RecipeEditor';
+import type { InventoryProduct, InventoryMovement, InventoryRecipeItem } from '@/lib/supabase';
 
 const MOVEMENT_LABEL: Record<string, string> = {
   in: 'Παραλαβή',
@@ -25,16 +26,22 @@ export default function ProductDetailPage() {
   const router = useRouter();
   const [product, setProduct] = useState<InventoryProduct | null>(null);
   const [movements, setMovements] = useState<InventoryMovement[]>([]);
+  const [allProducts, setAllProducts] = useState<InventoryProduct[]>([]);
+  const [recipeItems, setRecipeItems] = useState<InventoryRecipeItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [adjusting, setAdjusting] = useState(false);
 
   const fetchData = useCallback(async () => {
-    const [productData, movementsData] = await Promise.all([
+    const [productData, movementsData, productsData, recipeData] = await Promise.all([
       fetchProduct(params.id),
       fetchMovements(params.id, 20),
+      fetchProducts(),
+      fetchRecipeItems(params.id),
     ]);
     setProduct(productData);
     setMovements(movementsData);
+    setAllProducts(productsData);
+    setRecipeItems(recipeData);
     setLoading(false);
   }, [params.id]);
 
@@ -93,6 +100,15 @@ export default function ProductDetailPage() {
           </div>
         )}
 
+        <div className="mb-6">
+          <RecipeEditor
+            dishProduct={product}
+            recipeItems={recipeItems}
+            allProducts={allProducts}
+            onChanged={fetchData}
+          />
+        </div>
+
         <h2 className="text-sm font-medium text-[#2c2a24] mb-3">Πρόσφατες κινήσεις</h2>
         <div className="app-card overflow-hidden">
           <table className="w-full text-sm">
@@ -130,6 +146,8 @@ export default function ProductDetailPage() {
       {adjusting && (
         <StockAdjustModal
           product={product}
+          recipeItems={recipeItems}
+          ingredientProducts={allProducts}
           onClose={() => setAdjusting(false)}
           onSaved={() => {
             fetchData();

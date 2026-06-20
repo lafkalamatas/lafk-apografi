@@ -33,3 +33,11 @@ export type InventoryMovement = {
   created_by: string | null;
   created_at: string;
 };
+
+export type InventoryRecipeItem = {
+  id: string;
+  dish_product_id: string;
+  ingredient_product_id: string;
+  quantity_per_unit: number;
+  created_at: string;
+};

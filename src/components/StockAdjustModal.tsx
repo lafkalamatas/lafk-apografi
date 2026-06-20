@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import type { InventoryProduct, MovementType } from '@/lib/supabase';
-import { createMovement } from '@/lib/inventory';
+import { useEffect, useState } from 'react';
+import type { InventoryProduct, InventoryRecipeItem, MovementType } from '@/lib/supabase';
+import { createMovement, applyRecipeDepletion, fetchRecipeItems, fetchProducts } from '@/lib/inventory';
 
 const REASON_SUGGESTIONS: Record<'in' | 'out', string[]> = {
   in: ['Παραλαβή'],
@@ -11,10 +11,14 @@ const REASON_SUGGESTIONS: Record<'in' | 'out', string[]> = {
 
 export function StockAdjustModal({
   product,
+  recipeItems: recipeItemsProp,
+  ingredientProducts: ingredientProductsProp,
   onClose,
   onSaved,
 }: {
   product: InventoryProduct;
+  recipeItems?: InventoryRecipeItem[];
+  ingredientProducts?: InventoryProduct[];
   onClose: () => void;
   onSaved: () => void;
 }) {
@@ -24,6 +28,43 @@ export function StockAdjustModal({
   const [reason, setReason] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+
+  const [recipeItems, setRecipeItems] = useState<InventoryRecipeItem[]>(recipeItemsProp ?? []);
+  const [ingredientProducts, setIngredientProducts] = useState<InventoryProduct[]>(ingredientProductsProp ?? []);
+  const [ingredientQuantities, setIngredientQuantities] = useState<Record<string, string>>({});
+
+  // Only fetch what the caller didn't already provide (product detail page
+  // already has both in state; the products list page only has the product
+  // list, so this fetches just the recipe items in that case).
+  useEffect(() => {
+    if (recipeItemsProp !== undefined) return;
+    fetchRecipeItems(product.id).then(setRecipeItems);
+  }, [product.id, recipeItemsProp]);
+
+  useEffect(() => {
+    if (ingredientProductsProp !== undefined) return;
+    fetchProducts().then(setIngredientProducts);
+  }, [ingredientProductsProp]);
+
+  const hasRecipe = recipeItems.length > 0;
+  const showRecipePreview = mode === 'delta' && direction === 'out' && hasRecipe;
+
+  // Recomputes every recipe line from the recipe defaults whenever the dish
+  // quantity changes — keeps the common case (no override) zero-effort. Any
+  // line a user has edited gets reset too if they change the dish quantity
+  // again; they can just re-edit, a deliberate simplification.
+  useEffect(() => {
+    if (!showRecipePreview) return;
+    const dishQty = Number(quantity) || 0;
+    const next: Record<string, string> = {};
+    recipeItems.forEach((item) => {
+      next[item.ingredient_product_id] = dishQty > 0 ? String(item.quantity_per_unit * dishQty) : '';
+    });
+    setIngredientQuantities(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quantity, recipeItems, showRecipePreview]);
+
+  const ingredientsById = new Map(ingredientProducts.map((p) => [p.id, p]));
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -36,13 +77,21 @@ export function StockAdjustModal({
     setSaving(true);
     setError('');
     try {
-      const movement_type: MovementType = mode === 'absolute' ? 'adjustment' : direction;
-      await createMovement({
-        product_id: product.id,
-        movement_type,
-        quantity: value,
-        reason: reason.trim() || null,
-      });
+      if (showRecipePreview) {
+        const ingredients = recipeItems.map((item) => ({
+          product_id: item.ingredient_product_id,
+          quantity: Number(ingredientQuantities[item.ingredient_product_id]) || 0,
+        }));
+        await applyRecipeDepletion(product.id, value, reason.trim() || null, ingredients);
+      } else {
+        const movement_type: MovementType = mode === 'absolute' ? 'adjustment' : direction;
+        await createMovement({
+          product_id: product.id,
+          movement_type,
+          quantity: value,
+          reason: reason.trim() || null,
+        });
+      }
       onSaved();
       onClose();
     } catch (err: any) {
@@ -122,6 +171,40 @@ export function StockAdjustModal({
               className="w-full px-3 py-2 bg-white border border-[#e8e3d6] rounded-lg text-sm text-[#2c2a24] focus:outline-none focus:border-[#c4a94d]"
             />
           </div>
+
+          {showRecipePreview && (
+            <div className="border border-[#e8e3d6] rounded-lg p-3">
+              <p className="text-xs text-[#8a8578] mb-2">
+                Αυτόματη αφαίρεση πρώτων υλών (μπορείτε να τις προσαρμόσετε για αυτή τη φορά):
+              </p>
+              <div className="space-y-2">
+                {recipeItems.map((item) => {
+                  const ingredient = ingredientsById.get(item.ingredient_product_id);
+                  return (
+                    <div key={item.id} className="flex items-center justify-between gap-2">
+                      <span className="text-sm text-[#2c2a24]">{ingredient?.name ?? '—'}</span>
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={ingredientQuantities[item.ingredient_product_id] ?? ''}
+                          onChange={(e) =>
+                            setIngredientQuantities((prev) => ({
+                              ...prev,
+                              [item.ingredient_product_id]: e.target.value,
+                            }))
+                          }
+                          className="w-20 px-2 py-1 bg-white border border-[#e8e3d6] rounded-lg text-sm text-[#2c2a24] focus:outline-none focus:border-[#c4a94d]"
+                        />
+                        <span className="text-xs text-[#8a8578]">{ingredient?.unit ?? ''}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           <div>
             <label className="block text-xs text-[#8a8578] mb-1.5">Αιτία (προαιρετικό)</label>

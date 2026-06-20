@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import type { InventoryProduct } from '@/lib/supabase';
 
-const UNIT_OPTIONS = ['μερίδα', 'τεμάχιο', 'κιλό', 'λίτρο', 'κιβώτιο'];
+const UNIT_OPTIONS = ['μερίδα', 'τεμάχιο', 'γραμμάριο', 'κιλό', 'λίτρο', 'κιβώτιο'];
 
 export type ProductFormValues = {
   name: string;

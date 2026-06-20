@@ -1,4 +1,4 @@
-import { supabase, InventoryProduct, InventoryMovement, MovementType } from '@/lib/supabase';
+import { supabase, InventoryProduct, InventoryMovement, InventoryRecipeItem, MovementType } from '@/lib/supabase';
 
 export async function fetchProducts(includeInactive = false): Promise<InventoryProduct[]> {
   let query = supabase.from('inventory_products').select('*').order('name');
@@ -91,4 +91,56 @@ export async function createMovement(input: {
 
 export function isLowStock(product: InventoryProduct): boolean {
   return product.low_stock_threshold != null && product.quantity_on_hand <= product.low_stock_threshold;
+}
+
+export async function fetchRecipeItems(dishProductId: string): Promise<InventoryRecipeItem[]> {
+  const { data, error } = await supabase
+    .from('inventory_recipe_items')
+    .select('*')
+    .eq('dish_product_id', dishProductId)
+    .order('created_at');
+  if (error) throw error;
+  return (data ?? []) as InventoryRecipeItem[];
+}
+
+export async function addRecipeItem(
+  dishProductId: string,
+  ingredientProductId: string,
+  quantityPerUnit: number
+): Promise<InventoryRecipeItem> {
+  const { data, error } = await supabase
+    .from('inventory_recipe_items')
+    .insert({
+      dish_product_id: dishProductId,
+      ingredient_product_id: ingredientProductId,
+      quantity_per_unit: quantityPerUnit,
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  return data as InventoryRecipeItem;
+}
+
+export async function removeRecipeItem(recipeItemId: string): Promise<void> {
+  const { error } = await supabase.from('inventory_recipe_items').delete().eq('id', recipeItemId);
+  if (error) throw error;
+}
+
+// Atomically applies the dish's own depletion plus each ingredient's
+// (already-resolved, possibly overridden) quantity via apply_recipe_depletion —
+// see sql/inventory_recipes.sql. If any single insert would go negative, the
+// whole call rolls back, nothing partial gets applied.
+export async function applyRecipeDepletion(
+  dishProductId: string,
+  dishQuantity: number,
+  reason: string | null,
+  ingredients: Array<{ product_id: string; quantity: number }>
+): Promise<void> {
+  const { error } = await supabase.rpc('apply_recipe_depletion', {
+    p_dish_product_id: dishProductId,
+    p_dish_quantity: dishQuantity,
+    p_reason: reason ?? 'Χρήση',
+    p_ingredients: ingredients,
+  });
+  if (error) throw error;
 }
