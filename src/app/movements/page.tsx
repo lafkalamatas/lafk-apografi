@@ -10,7 +10,7 @@ import type { InventoryMovement, InventoryProduct, MovementType } from '@/lib/su
 
 const MOVEMENT_LABEL: Record<MovementType, string> = {
   in: 'Παραλαβή',
-  out: 'Χρήση/Φύρα',
+  out: 'Χρήση',
   adjustment: 'Διόρθωση',
 };
 
@@ -102,7 +102,7 @@ export default function MovementsPage() {
           >
             <option value="">Όλοι οι τύποι</option>
             <option value="in">Παραλαβή</option>
-            <option value="out">Χρήση/Φύρα</option>
+            <option value="out">Χρήση</option>
             <option value="adjustment">Διόρθωση</option>
           </select>
         </div>

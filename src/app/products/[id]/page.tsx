@@ -12,7 +12,7 @@ import type { InventoryProduct, InventoryMovement, InventoryRecipeItem } from '@
 
 const MOVEMENT_LABEL: Record<string, string> = {
   in: 'Παραλαβή',
-  out: 'Χρήση/Φύρα',
+  out: 'Χρήση',
   adjustment: 'Διόρθωση',
 };
 

@@ -1,0 +1,43 @@
+name: Archive inventory movements
+
+# Quarterly archive-and-prune of inventory_movements: exports rows older than
+# the retention window to an .xlsx, emails it off-site, then deletes them.
+# See scripts/archive-movements.ts for the (safe) ordering and rationale.
+
+on:
+  schedule:
+    # 00:00 UTC on the 1st of Jan, Apr, Jul, Oct.
+    - cron: '0 0 1 */3 *'
+  workflow_dispatch: {} # allow manual runs from the Actions tab
+
+# Don't let a manual run overlap a scheduled one (a double prune is harmless
+# given the email-first ordering, but no reason to risk it).
+concurrency:
+  group: archive-movements
+  cancel-in-progress: false
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: leschi-apografi
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: leschi-apografi/package-lock.json
+
+      - run: npm ci
+
+      - run: npm run archive
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          # Optional overrides (fall back to script defaults if unset):
+          ARCHIVE_EMAIL_TO: ${{ secrets.ARCHIVE_EMAIL_TO }}
+          ARCHIVE_EMAIL_FROM: ${{ secrets.ARCHIVE_EMAIL_FROM }}

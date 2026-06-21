@@ -6,7 +6,7 @@ import { createMovement, applyRecipeDepletion, fetchRecipeItems, fetchProducts }
 
 const REASON_SUGGESTIONS: Record<'in' | 'out', string[]> = {
   in: ['Παραλαβή'],
-  out: ['Χρήση', 'Φύρα/Απώλεια'],
+  out: ['Χρήση', 'Απώλεια'],
 };
 
 export function StockAdjustModal({
@@ -152,7 +152,7 @@ export function StockAdjustModal({
                     : 'border-[#e8e3d6] text-[#5a5750]'
                 }`}
               >
-                - Χρήση/Φύρα
+                - Χρήση
               </button>
             </div>
           )}
