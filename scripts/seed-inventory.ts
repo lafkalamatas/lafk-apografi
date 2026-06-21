@@ -133,7 +133,6 @@ async function main() {
     name: string;
     category: string | null;
     unit: string;
-    reference_price: number;
     source_menu_item_id: string | null;
     source_psita_item_id: string | null;
   }> = [];
@@ -158,7 +157,6 @@ async function main() {
       name: row.name,
       category: row.category,
       unit: 'μερίδα',
-      reference_price: row.price,
       source_menu_item_id: row.sourceTable === 'menu_items' ? row.sourceId : null,
       source_psita_item_id: row.sourceTable === 'psita_items' ? row.sourceId : null,
     });

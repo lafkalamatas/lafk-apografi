@@ -10,7 +10,6 @@ export type InventoryProduct = {
   name: string;
   category: string | null;
   unit: string;
-  reference_price: number | null;
   quantity_on_hand: number;
   low_stock_threshold: number | null;
   source_menu_item_id: string | null;

@@ -8,7 +8,6 @@ CREATE TABLE inventory_products (
   name TEXT NOT NULL,
   category TEXT,
   unit TEXT NOT NULL DEFAULT 'μερίδα',
-  reference_price NUMERIC(8,2),
   quantity_on_hand NUMERIC(10,2) NOT NULL DEFAULT 0,
   low_stock_threshold NUMERIC(10,2),
   source_menu_item_id UUID,

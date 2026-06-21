@@ -20,7 +20,6 @@ export async function createProduct(input: {
   name: string;
   category: string | null;
   unit: string;
-  reference_price: number | null;
   low_stock_threshold: number | null;
   notes: string | null;
 }): Promise<InventoryProduct> {
@@ -35,7 +34,6 @@ export async function updateProduct(
     name: string;
     category: string | null;
     unit: string;
-    reference_price: number | null;
     low_stock_threshold: number | null;
     notes: string | null;
   }

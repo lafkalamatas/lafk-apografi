@@ -16,6 +16,7 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [showInactive, setShowInactive] = useState(false);
+  const [lowStockOnly, setLowStockOnly] = useState(false);
   const [adjustingProduct, setAdjustingProduct] = useState<InventoryProduct | null>(null);
 
   const fetchData = useCallback(async (includeInactive: boolean) => {
@@ -28,7 +29,7 @@ export default function ProductsPage() {
     if (authenticated) fetchData(showInactive);
   }, [authenticated, showInactive, fetchData]);
 
-  const filtered = useMemo(() => {
+  const searchFiltered = useMemo(() => {
     const term = search.trim().toLowerCase();
     if (!term) return products;
     return products.filter(
@@ -36,20 +37,24 @@ export default function ProductsPage() {
     );
   }, [products, search]);
 
-  function handleExport() {
-    const rows = filtered.map((p) => ({
+  const filtered = useMemo(
+    () => (lowStockOnly ? searchFiltered.filter(isLowStock) : searchFiltered),
+    [searchFiltered, lowStockOnly]
+  );
+
+  function exportProducts(list: InventoryProduct[], suffix: string) {
+    const rows = list.map((p) => ({
       Όνομα: p.name,
       Κατηγορία: p.category ?? '',
       Μονάδα: p.unit,
       Ποσότητα: p.quantity_on_hand,
-      'Τιμή αναφοράς': p.reference_price ?? '',
       'Όριο χαμηλού αποθέματος': p.low_stock_threshold ?? '',
       Κατάσταση: p.active ? 'Ενεργό' : 'Ανενεργό',
     }));
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Προϊόντα');
-    XLSX.writeFile(wb, `apografi-${new Date().toISOString().slice(0, 10)}.xlsx`);
+    XLSX.writeFile(wb, `apografi${suffix}-${new Date().toISOString().slice(0, 10)}.xlsx`);
   }
 
   if (authLoading || !authenticated) return null;
@@ -60,12 +65,18 @@ export default function ProductsPage() {
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
           <h1 className="app-heading text-2xl text-[#2c2a24]">Προϊόντα</h1>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
-              onClick={handleExport}
+              onClick={() => exportProducts(filtered, '')}
               className="border border-[#e8e3d6] text-[#5a5750] px-3 py-2 rounded-lg text-sm hover:bg-[#f0ece0] transition-colors"
             >
               Εξαγωγή Excel
+            </button>
+            <button
+              onClick={() => exportProducts(searchFiltered.filter(isLowStock), '-xamilo')}
+              className="border border-red-200 text-red-600 px-3 py-2 rounded-lg text-sm hover:bg-red-50 transition-colors"
+            >
+              Εξαγωγή χαμηλού αποθέματος
             </button>
             <Link
               href="/products/new"
@@ -85,6 +96,10 @@ export default function ProductsPage() {
             className="px-3 py-2 bg-white border border-[#e8e3d6] rounded-lg text-sm text-[#2c2a24] focus:outline-none focus:border-[#c4a94d] w-full sm:w-64"
           />
           <label className="flex items-center gap-2 text-sm text-[#5a5750]">
+            <input type="checkbox" checked={lowStockOnly} onChange={(e) => setLowStockOnly(e.target.checked)} />
+            Μόνο χαμηλό απόθεμα
+          </label>
+          <label className="flex items-center gap-2 text-sm text-[#5a5750]">
             <input type="checkbox" checked={showInactive} onChange={(e) => setShowInactive(e.target.checked)} />
             Εμφάνιση ανενεργών
           </label>
@@ -97,7 +112,11 @@ export default function ProductsPage() {
             rows={filtered}
             getRowKey={(product) => product.id}
             emptyMessage="Δεν βρέθηκαν προϊόντα."
-            rowClassName={(product) => (!product.active ? 'opacity-50' : undefined)}
+            rowClassName={(product) =>
+              [!product.active ? 'opacity-50' : '', isLowStock(product) ? 'bg-red-50/60' : '']
+                .filter(Boolean)
+                .join(' ') || undefined
+            }
             defaultSort={{ index: 0, dir: 'asc' }}
             columns={[
               {
@@ -105,9 +124,16 @@ export default function ProductsPage() {
                 mobileFullWidth: true,
                 sortValue: (product) => product.name,
                 cell: (product) => (
-                  <Link href={`/products/${product.id}`} className="text-[#2c2a24] hover:text-gold-600 font-medium">
-                    {product.name}
-                  </Link>
+                  <span className="inline-flex flex-wrap items-center gap-2">
+                    <Link href={`/products/${product.id}`} className="text-[#2c2a24] hover:text-gold-600 font-medium">
+                      {product.name}
+                    </Link>
+                    {isLowStock(product) && (
+                      <span className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-red-100 text-red-600 font-medium">
+                        Χαμηλό
+                      </span>
+                    )}
+                  </span>
                 ),
               },
               {

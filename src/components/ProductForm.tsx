@@ -9,7 +9,6 @@ export type ProductFormValues = {
   name: string;
   category: string;
   unit: string;
-  reference_price: string;
   low_stock_threshold: string;
   notes: string;
 };
@@ -19,7 +18,6 @@ function toFormValues(product?: InventoryProduct): ProductFormValues {
     name: product?.name ?? '',
     category: product?.category ?? '',
     unit: product?.unit ?? 'μερίδα',
-    reference_price: product?.reference_price != null ? String(product.reference_price) : '',
     low_stock_threshold: product?.low_stock_threshold != null ? String(product.low_stock_threshold) : '',
     notes: product?.notes ?? '',
   };
@@ -38,7 +36,6 @@ export function ProductForm({
     name: string;
     category: string | null;
     unit: string;
-    reference_price: number | null;
     low_stock_threshold: number | null;
     notes: string | null;
   }) => void | Promise<void>;
@@ -61,7 +58,6 @@ export function ProductForm({
       name: values.name.trim(),
       category: values.category.trim() || null,
       unit: values.unit,
-      reference_price: values.reference_price ? Number(values.reference_price) : null,
       low_stock_threshold: values.low_stock_threshold ? Number(values.low_stock_threshold) : null,
       notes: values.notes.trim() || null,
     });
@@ -106,29 +102,16 @@ export function ProductForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-xs text-[#8a8578] mb-1.5">Τιμή αναφοράς (€)</label>
-          <input
-            type="number"
-            step="0.01"
-            min="0"
-            value={values.reference_price}
-            onChange={(e) => update('reference_price', e.target.value)}
-            className="w-full px-3 py-2 bg-white border border-[#e8e3d6] rounded-lg text-sm text-[#2c2a24] focus:outline-none focus:border-[#c4a94d]"
-          />
-        </div>
-        <div>
-          <label className="block text-xs text-[#8a8578] mb-1.5">Όριο χαμηλού αποθέματος</label>
-          <input
-            type="number"
-            step="0.01"
-            min="0"
-            value={values.low_stock_threshold}
-            onChange={(e) => update('low_stock_threshold', e.target.value)}
-            className="w-full px-3 py-2 bg-white border border-[#e8e3d6] rounded-lg text-sm text-[#2c2a24] focus:outline-none focus:border-[#c4a94d]"
-          />
-        </div>
+      <div>
+        <label className="block text-xs text-[#8a8578] mb-1.5">Όριο χαμηλού αποθέματος</label>
+        <input
+          type="number"
+          step="0.01"
+          min="0"
+          value={values.low_stock_threshold}
+          onChange={(e) => update('low_stock_threshold', e.target.value)}
+          className="w-full px-3 py-2 bg-white border border-[#e8e3d6] rounded-lg text-sm text-[#2c2a24] focus:outline-none focus:border-[#c4a94d]"
+        />
       </div>
 
       <div>
