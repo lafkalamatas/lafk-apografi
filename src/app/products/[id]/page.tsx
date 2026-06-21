@@ -8,6 +8,7 @@ import { fetchProduct, fetchProducts, fetchMovements, fetchRecipeItems, isLowSto
 import { AppHeader } from '@/components/AppHeader';
 import { StockAdjustModal } from '@/components/StockAdjustModal';
 import { RecipeEditor } from '@/components/RecipeEditor';
+import { ResponsiveTable } from '@/components/ResponsiveTable';
 import type { InventoryProduct, InventoryMovement, InventoryRecipeItem } from '@/lib/supabase';
 
 const MOVEMENT_LABEL: Record<string, string> = {
@@ -110,37 +111,18 @@ export default function ProductDetailPage() {
         </div>
 
         <h2 className="text-sm font-medium text-[#2c2a24] mb-3">Πρόσφατες κινήσεις</h2>
-        <div className="app-card overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-[#e8e3d6] text-left text-xs text-[#8a8578]">
-                <th className="px-4 py-2.5">Ημερομηνία</th>
-                <th className="px-4 py-2.5">Τύπος</th>
-                <th className="px-4 py-2.5">Ποσότητα</th>
-                <th className="px-4 py-2.5">Υπόλοιπο</th>
-                <th className="px-4 py-2.5">Αιτία</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#e8e3d6]">
-              {movements.map((m) => (
-                <tr key={m.id}>
-                  <td className="px-4 py-2.5 text-[#5a5750]">{formatDateTime(m.created_at)}</td>
-                  <td className="px-4 py-2.5 text-[#2c2a24]">{MOVEMENT_LABEL[m.movement_type]}</td>
-                  <td className="px-4 py-2.5 text-[#2c2a24]">{m.quantity}</td>
-                  <td className="px-4 py-2.5 text-[#2c2a24]">{m.resulting_quantity}</td>
-                  <td className="px-4 py-2.5 text-[#5a5750]">{m.reason ?? '—'}</td>
-                </tr>
-              ))}
-              {movements.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-[#8a8578] text-sm">
-                    Δεν υπάρχουν κινήσεις ακόμα.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        <ResponsiveTable
+          rows={movements}
+          getRowKey={(m) => m.id}
+          emptyMessage="Δεν υπάρχουν κινήσεις ακόμα."
+          columns={[
+            { header: 'Ημερομηνία', className: 'text-[#5a5750]', cell: (m) => formatDateTime(m.created_at) },
+            { header: 'Τύπος', className: 'text-[#2c2a24]', cell: (m) => MOVEMENT_LABEL[m.movement_type] },
+            { header: 'Ποσότητα', className: 'text-[#2c2a24]', cell: (m) => m.quantity },
+            { header: 'Υπόλοιπο', className: 'text-[#2c2a24]', cell: (m) => m.resulting_quantity },
+            { header: 'Αιτία', className: 'text-[#5a5750]', cell: (m) => m.reason ?? '—' },
+          ]}
+        />
       </main>
 
       {adjusting && (

@@ -6,6 +6,7 @@ import * as XLSX from 'xlsx';
 import { useAuthGuard } from '@/lib/useAuthGuard';
 import { fetchProducts, isLowStock } from '@/lib/inventory';
 import { AppHeader } from '@/components/AppHeader';
+import { ResponsiveTable } from '@/components/ResponsiveTable';
 import { StockAdjustModal } from '@/components/StockAdjustModal';
 import type { InventoryProduct } from '@/lib/supabase';
 
@@ -92,55 +93,51 @@ export default function ProductsPage() {
         {loading ? (
           <p className="text-sm text-[#8a8578]">Φόρτωση...</p>
         ) : (
-          <div className="app-card overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-[#e8e3d6] text-left text-xs text-[#8a8578]">
-                  <th className="px-4 py-2.5">Όνομα</th>
-                  <th className="px-4 py-2.5">Κατηγορία</th>
-                  <th className="px-4 py-2.5">Απόθεμα</th>
-                  <th className="px-4 py-2.5"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#e8e3d6]">
-                {filtered.map((product) => {
-                  const lowStock = isLowStock(product);
-                  return (
-                    <tr key={product.id} className={!product.active ? 'opacity-50' : undefined}>
-                      <td className="px-4 py-2.5">
-                        <Link href={`/products/${product.id}`} className="text-[#2c2a24] hover:text-gold-600">
-                          {product.name}
-                        </Link>
-                      </td>
-                      <td className="px-4 py-2.5 text-[#5a5750]">{product.category ?? '—'}</td>
-                      <td className="px-4 py-2.5">
-                        <span className={lowStock ? 'text-red-500 font-medium' : 'text-[#2c2a24]'}>
-                          {product.quantity_on_hand} {product.unit}
-                        </span>
-                      </td>
-                      <td className="px-4 py-2.5 text-right">
-                        {product.active && (
-                          <button
-                            onClick={() => setAdjustingProduct(product)}
-                            className="text-xs px-2.5 py-1 rounded-lg border border-[#e8e3d6] text-[#5a5750] hover:bg-[#f0ece0] transition-colors"
-                          >
-                            Προσαρμογή
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-                {filtered.length === 0 && (
-                  <tr>
-                    <td colSpan={4} className="px-4 py-8 text-center text-[#8a8578] text-sm">
-                      Δεν βρέθηκαν προϊόντα.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+          <ResponsiveTable
+            rows={filtered}
+            getRowKey={(product) => product.id}
+            emptyMessage="Δεν βρέθηκαν προϊόντα."
+            rowClassName={(product) => (!product.active ? 'opacity-50' : undefined)}
+            columns={[
+              {
+                header: 'Όνομα',
+                mobileFullWidth: true,
+                cell: (product) => (
+                  <Link href={`/products/${product.id}`} className="text-[#2c2a24] hover:text-gold-600 font-medium">
+                    {product.name}
+                  </Link>
+                ),
+              },
+              {
+                header: 'Κατηγορία',
+                className: 'text-[#5a5750]',
+                cell: (product) => product.category ?? '—',
+              },
+              {
+                header: 'Απόθεμα',
+                cell: (product) => (
+                  <span className={isLowStock(product) ? 'text-red-500 font-medium' : 'text-[#2c2a24]'}>
+                    {product.quantity_on_hand} {product.unit}
+                  </span>
+                ),
+              },
+              {
+                header: 'Ενέργειες',
+                headerHidden: true,
+                mobileFullWidth: true,
+                className: 'text-right',
+                cell: (product) =>
+                  product.active ? (
+                    <button
+                      onClick={() => setAdjustingProduct(product)}
+                      className="text-xs px-2.5 py-1.5 rounded-lg border border-[#e8e3d6] text-[#5a5750] hover:bg-[#f0ece0] transition-colors w-full sm:w-auto"
+                    >
+                      Προσαρμογή
+                    </button>
+                  ) : null,
+              },
+            ]}
+          />
         )}
       </main>
 

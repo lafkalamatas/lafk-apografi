@@ -91,11 +91,11 @@ export function RecipeEditor({
       )}
 
       {availableIngredients.length > 0 ? (
-        <form onSubmit={handleAdd} className="flex flex-wrap items-end gap-2">
+        <form onSubmit={handleAdd} className="flex flex-col sm:flex-row sm:flex-wrap sm:items-end gap-2">
           <select
             value={ingredientId}
             onChange={(e) => setIngredientId(e.target.value)}
-            className="px-3 py-2 bg-white border border-[#e8e3d6] rounded-lg text-sm text-[#2c2a24] focus:outline-none focus:border-[#c4a94d]"
+            className="w-full sm:w-auto px-3 py-2 bg-white border border-[#e8e3d6] rounded-lg text-sm text-[#2c2a24] focus:outline-none focus:border-[#c4a94d]"
           >
             <option value="">Επιλέξτε πρώτη ύλη...</option>
             {availableIngredients.map((p) => (
@@ -111,12 +111,12 @@ export function RecipeEditor({
             placeholder="Ποσότητα ανά μονάδα"
             value={quantity}
             onChange={(e) => setQuantity(e.target.value)}
-            className="w-40 px-3 py-2 bg-white border border-[#e8e3d6] rounded-lg text-sm text-[#2c2a24] focus:outline-none focus:border-[#c4a94d]"
+            className="w-full sm:w-40 px-3 py-2 bg-white border border-[#e8e3d6] rounded-lg text-sm text-[#2c2a24] focus:outline-none focus:border-[#c4a94d]"
           />
           <button
             type="submit"
             disabled={saving}
-            className="px-3 py-2 rounded-lg text-sm bg-gold-400 text-military-700 font-medium hover:bg-gold-300 transition-colors disabled:opacity-50"
+            className="w-full sm:w-auto px-3 py-2 rounded-lg text-sm bg-gold-400 text-military-700 font-medium hover:bg-gold-300 transition-colors disabled:opacity-50"
           >
             Προσθήκη
           </button>

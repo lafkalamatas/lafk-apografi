@@ -6,6 +6,7 @@ import * as XLSX from 'xlsx';
 import { useAuthGuard } from '@/lib/useAuthGuard';
 import { fetchMovements, fetchProducts } from '@/lib/inventory';
 import { AppHeader } from '@/components/AppHeader';
+import { ResponsiveTable } from '@/components/ResponsiveTable';
 import type { InventoryMovement, InventoryProduct, MovementType } from '@/lib/supabase';
 
 const MOVEMENT_LABEL: Record<MovementType, string> = {
@@ -110,43 +111,31 @@ export default function MovementsPage() {
         {loading ? (
           <p className="text-sm text-[#8a8578]">Φόρτωση...</p>
         ) : (
-          <div className="app-card overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-[#e8e3d6] text-left text-xs text-[#8a8578]">
-                  <th className="px-4 py-2.5">Ημερομηνία</th>
-                  <th className="px-4 py-2.5">Προϊόν</th>
-                  <th className="px-4 py-2.5">Τύπος</th>
-                  <th className="px-4 py-2.5">Ποσότητα</th>
-                  <th className="px-4 py-2.5">Υπόλοιπο</th>
-                  <th className="px-4 py-2.5">Αιτία</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#e8e3d6]">
-                {filtered.map((m) => (
-                  <tr key={m.id}>
-                    <td className="px-4 py-2.5 text-[#5a5750]">{formatDateTime(m.created_at)}</td>
-                    <td className="px-4 py-2.5">
-                      <Link href={`/products/${m.product_id}`} className="text-[#2c2a24] hover:text-gold-600">
-                        {productsById.get(m.product_id)?.name ?? '—'}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-2.5 text-[#2c2a24]">{MOVEMENT_LABEL[m.movement_type]}</td>
-                    <td className="px-4 py-2.5 text-[#2c2a24]">{m.quantity}</td>
-                    <td className="px-4 py-2.5 text-[#2c2a24]">{m.resulting_quantity}</td>
-                    <td className="px-4 py-2.5 text-[#5a5750]">{m.reason ?? '—'}</td>
-                  </tr>
-                ))}
-                {filtered.length === 0 && (
-                  <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-[#8a8578] text-sm">
-                      Δεν βρέθηκαν κινήσεις.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+          <ResponsiveTable
+            rows={filtered}
+            getRowKey={(m) => m.id}
+            emptyMessage="Δεν βρέθηκαν κινήσεις."
+            columns={[
+              {
+                header: 'Προϊόν',
+                mobileFullWidth: true,
+                cell: (m) => (
+                  <Link href={`/products/${m.product_id}`} className="text-[#2c2a24] hover:text-gold-600 font-medium">
+                    {productsById.get(m.product_id)?.name ?? '—'}
+                  </Link>
+                ),
+              },
+              {
+                header: 'Ημερομηνία',
+                className: 'text-[#5a5750]',
+                cell: (m) => formatDateTime(m.created_at),
+              },
+              { header: 'Τύπος', className: 'text-[#2c2a24]', cell: (m) => MOVEMENT_LABEL[m.movement_type] },
+              { header: 'Ποσότητα', className: 'text-[#2c2a24]', cell: (m) => m.quantity },
+              { header: 'Υπόλοιπο', className: 'text-[#2c2a24]', cell: (m) => m.resulting_quantity },
+              { header: 'Αιτία', className: 'text-[#5a5750]', cell: (m) => m.reason ?? '—' },
+            ]}
+          />
         )}
       </main>
     </div>

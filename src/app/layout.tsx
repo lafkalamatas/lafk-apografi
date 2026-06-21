@@ -1,10 +1,15 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
   title: 'Απογραφή | Λέσχη Αξιωματικών Καλαμάτας',
   description: 'Διαχείριση αποθέματος εστιατορίου.',
   robots: { index: false, follow: false },
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
 };
 
 export default function RootLayout({
