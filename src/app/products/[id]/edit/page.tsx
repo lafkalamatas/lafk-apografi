@@ -46,7 +46,7 @@ export default function EditProductPage() {
       <main className="max-w-lg mx-auto px-4 sm:px-6 py-8">
         <div className="flex items-center justify-between mb-6">
           <h1 className="app-heading text-2xl text-[#2c2a24]">Επεξεργασία Προϊόντος</h1>
-          {product.active && (
+          {product.active ? (
             <button
               onClick={() =>
                 setConfirmState({
@@ -62,6 +62,24 @@ export default function EditProductPage() {
               className="text-sm text-red-500 hover:text-red-600"
             >
               Αφαίρεση
+            </button>
+          ) : (
+            <button
+              onClick={() =>
+                setConfirmState({
+                  title: 'Επαναφορά προϊόντος',
+                  message: `Το "${product.name}" θα εμφανιστεί ξανά στη λίστα προϊόντων.`,
+                  confirmLabel: 'Επαναφορά',
+                  confirmTone: 'primary',
+                  onConfirm: async () => {
+                    await setProductActive(product.id, true);
+                    router.push(`/products/${product.id}`);
+                  },
+                })
+              }
+              className="text-sm text-gold-600 hover:text-gold-700"
+            >
+              Επαναφορά
             </button>
           )}
         </div>

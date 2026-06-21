@@ -98,10 +98,12 @@ export default function ProductsPage() {
             getRowKey={(product) => product.id}
             emptyMessage="Δεν βρέθηκαν προϊόντα."
             rowClassName={(product) => (!product.active ? 'opacity-50' : undefined)}
+            defaultSort={{ index: 0, dir: 'asc' }}
             columns={[
               {
                 header: 'Όνομα',
                 mobileFullWidth: true,
+                sortValue: (product) => product.name,
                 cell: (product) => (
                   <Link href={`/products/${product.id}`} className="text-[#2c2a24] hover:text-gold-600 font-medium">
                     {product.name}
@@ -111,10 +113,12 @@ export default function ProductsPage() {
               {
                 header: 'Κατηγορία',
                 className: 'text-[#5a5750]',
+                sortValue: (product) => product.category ?? '',
                 cell: (product) => product.category ?? '—',
               },
               {
                 header: 'Απόθεμα',
+                sortValue: (product) => product.quantity_on_hand,
                 cell: (product) => (
                   <span className={isLowStock(product) ? 'text-red-500 font-medium' : 'text-[#2c2a24]'}>
                     {product.quantity_on_hand} {product.unit}

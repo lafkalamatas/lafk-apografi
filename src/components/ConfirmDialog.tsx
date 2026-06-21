@@ -4,6 +4,8 @@ export type ConfirmDialogState = {
   title: string;
   message: string;
   confirmLabel?: string;
+  /** Visual tone of the confirm button. Defaults to 'danger'. */
+  confirmTone?: 'danger' | 'primary';
   onConfirm: () => void | Promise<void>;
 } | null;
 
@@ -35,7 +37,11 @@ export function ConfirmDialog({
               await state.onConfirm();
               onClose();
             }}
-            className="px-3 py-1.5 rounded-lg text-sm bg-red-500 text-white hover:bg-red-600 transition-colors"
+            className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
+              state.confirmTone === 'primary'
+                ? 'bg-gold-400 text-military-700 hover:bg-gold-300'
+                : 'bg-red-500 text-white hover:bg-red-600'
+            }`}
           >
             {state.confirmLabel ?? 'Επιβεβαίωση'}
           </button>

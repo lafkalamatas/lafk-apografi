@@ -115,10 +115,12 @@ export default function MovementsPage() {
             rows={filtered}
             getRowKey={(m) => m.id}
             emptyMessage="Δεν βρέθηκαν κινήσεις."
+            defaultSort={{ index: 1, dir: 'desc' }}
             columns={[
               {
                 header: 'Προϊόν',
                 mobileFullWidth: true,
+                sortValue: (m) => productsById.get(m.product_id)?.name ?? '',
                 cell: (m) => (
                   <Link href={`/products/${m.product_id}`} className="text-[#2c2a24] hover:text-gold-600 font-medium">
                     {productsById.get(m.product_id)?.name ?? '—'}
@@ -128,11 +130,17 @@ export default function MovementsPage() {
               {
                 header: 'Ημερομηνία',
                 className: 'text-[#5a5750]',
+                sortValue: (m) => m.created_at,
                 cell: (m) => formatDateTime(m.created_at),
               },
               { header: 'Τύπος', className: 'text-[#2c2a24]', cell: (m) => MOVEMENT_LABEL[m.movement_type] },
-              { header: 'Ποσότητα', className: 'text-[#2c2a24]', cell: (m) => m.quantity },
-              { header: 'Υπόλοιπο', className: 'text-[#2c2a24]', cell: (m) => m.resulting_quantity },
+              { header: 'Ποσότητα', className: 'text-[#2c2a24]', sortValue: (m) => m.quantity, cell: (m) => m.quantity },
+              {
+                header: 'Υπόλοιπο',
+                className: 'text-[#2c2a24]',
+                sortValue: (m) => m.resulting_quantity,
+                cell: (m) => m.resulting_quantity,
+              },
               { header: 'Αιτία', className: 'text-[#5a5750]', cell: (m) => m.reason ?? '—' },
             ]}
           />
