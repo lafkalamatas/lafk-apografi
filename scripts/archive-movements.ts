@@ -27,7 +27,7 @@
  *   SUPABASE_SERVICE_ROLE_KEY   bypasses the deliberate no-DELETE RLS policy
  *   RESEND_API_KEY              https://resend.com (free tier)
  * Optional:
- *   ARCHIVE_EMAIL_TO            default giannisvrn@gmail.com
+ *   ARCHIVE_EMAIL_TO            default lafkalamatas@hotmail.com
  *   ARCHIVE_EMAIL_FROM          default 'Λέσχη Απογραφή <onboarding@resend.dev>'
  *   ARCHIVE_RETENTION_MONTHS    default 3
  */
@@ -40,7 +40,7 @@ config({ path: '.env.local' });
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const resendApiKey = process.env.RESEND_API_KEY;
-const emailTo = process.env.ARCHIVE_EMAIL_TO || 'giannisvrn@gmail.com';
+const emailTo = process.env.ARCHIVE_EMAIL_TO || 'lafkalamatas@hotmail.com';
 const emailFrom = process.env.ARCHIVE_EMAIL_FROM || 'Λέσχη Απογραφή <onboarding@resend.dev>';
 const retentionMonths = Number(process.env.ARCHIVE_RETENTION_MONTHS || '3');
 
